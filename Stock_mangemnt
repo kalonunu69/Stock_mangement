@@ -1,0 +1,140 @@
+!/bin#!\bin/bash
+
+declare -A STOCK_DB
+
+STOCK_DB["101"]="Laptop,Electronics,15,1200"
+STOCK_DB["102"]="Mouse,Electronics,50,25"
+STOCK_DB["103"]="Desk Chair,Office,10,150"
+STOCK_DB["104"]="Notebook,Stationery,100,2"
+STOCK_DB["105"]="Keyboard,Electronics,30,45"
+STOCK_DB["106"]="Monitor,Electronics,12,300"
+STOCK_DB["107"]="Desk Lamp,Office,25,35"
+STOCK_DB["108"]="Gel Pens,Stationery,200,1"
+STOCK_DB["109"]="Backpack,Accessories,40,60"
+STOCK_DB["110"]="Headphones,Electronics,18,85"
+STOCK_DB["111"]="USB Drive,Electronics,75,15"
+STOCK_DB["112"]="Water Bottle,Accessories,60,20"
+STOCK_DB["113"]="Stapler,Stationery,35,8"
+STOCK_DB["114"]="File Folder,Stationery,500,0"
+STOCK_DB["115"]="Whiteboard,Office,8,110"
+STOCK_DB["116"]="Markers,Stationery,80,5"
+STOCK_DB["117"]="External HDD,Electronics,14,90"
+STOCK_DB["118"]="HDMI Cable,Electronics,90,12"
+STOCK_DB["119"]="Desk Mat,Office,45,22"
+STOCK_DB["120"]="Paper Clips,Stationery,1000,0"
+STOCK_DB["121"]="Calculator,Office,22,18"
+STOCK_DB["122"]="Webcam,Electronics,20,75"
+STOCK_DB["123"]="Coffee Mug,Accessories,55,10"
+STOCK_DB["124"]="Sticky Notes,Stationery,300,1"
+STOCK_DB["125"]="Power Strip,Electronics,35,25"
+
+draw_line() {
+    echo "--------------------------------------------------------"
+}
+
+add_item() {
+    echo "Enter Item ID:"
+    read id
+
+    if [[ -n "${STOCK_DB[$id]}" ]]; then
+        echo "Error: ID $id already exists!"
+        return
+    fi
+
+    echo "Enter Item Name:"
+    read name
+    echo "Enter Category:"
+    read cat
+    echo "Enter Quantity:"
+    read qty
+    echo "Enter Price:"
+    read price
+
+    STOCK_DB["$id"]="$name,$cat,$qty,$price"
+    echo "Item added successfully to memory!"
+}
+
+view_all() {
+    clear
+    draw_line
+    echo -e "ID\tName\t\tCategory\tQty\tPrice"
+    draw_line
+
+    for id in $(echo "${!STOCK_DB[@]}" | tr ' ' '\n' | sort -n); do
+        echo -e "$id\t$(echo ${STOCK_DB[$id]} | tr ',' '\t')"
+    done
+
+    draw_line
+    read -p "Press Enter to return to menu..."
+}
+
+update_stock() {
+    echo "Enter Item ID to update:"
+    read id
+
+    if [[ -z "${STOCK_DB[$id]}" ]]; then
+        echo "Item not found!"
+        return
+    fi
+
+    echo "Enter New Quantity:"
+    read new_qty
+
+    current_data=${STOCK_DB[$id]}
+    IFS=',' read -r name cat old_qty price <<< "$current_data"
+
+    STOCK_DB["$id"]="$name,$cat,$new_qty,$price"
+    echo "Stock updated!"
+}
+
+search_item() {
+    echo "Enter search term (ID or Name):"
+    read search
+    draw_line
+    echo -e "ID\tName\t\tCategory\tQty\tPrice"
+    draw_line
+
+    for id in "${!STOCK_DB[@]}"; do
+        data=${STOCK_DB[$id]}
+        if [[ "$id" == *"$search"* ]] || [[ "$data" == *"$search"* ]]; then
+            echo -e "$id\t$(echo $data | tr ',' '\t')"
+        fi
+    done
+    draw_line
+}
+
+delete_item() {
+    echo "Enter ID to delete:"
+    read del_id
+    if [[ -z "${STOCK_DB[$del_id]}" ]]; then
+        echo "Item not found!"
+        return
+    fi
+    unset STOCK_DB["$del_id"]
+    echo "Item deleted from memory."
+}
+
+while true; do
+    echo "
+    ====================================
+    STOCK MANAGEMENT SYSTEM (MOCK DATA)
+    ====================================
+    1. Add New Item
+    2. View Inventory
+    3. Update Stock Quantity
+    4. Search Item
+    5. Delete Item
+    6. Exit
+    "
+    read -p "Select an option [1-6]: " choice
+
+    case $choice in
+        1) add_item ;;
+        2) view_all ;;
+        3) update_stock ;;
+        4) search_item ;;
+        5) delete_item ;;
+        6) echo "Goodbye!"; exit 0 ;;
+        *) echo "Invalid option!" ;;
+    esac
+done
